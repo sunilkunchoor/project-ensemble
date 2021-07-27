@@ -2,12 +2,8 @@
 from flask import Flask, render_template, request
 from flask_bootstrap import Bootstrap
 
-# Importing libraries required for model prediction
-import joblib
-import json
-
-# Other utlilities
-from utils import  data_pre_process
+# Other utilities
+from utils import  data_pre_process, prediction
 
 # Initializing the app
 app = Flask(__name__)
@@ -15,11 +11,6 @@ app = Flask(__name__)
 
 # Adding Boostrap to application
 Bootstrap(app)
-
-
-# Loading the saved model
-saved_model = joblib.load('gbc_model.pkl')
-
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -32,7 +23,7 @@ def predict():
     try:
         client_input = request.json
         clean_input = data_pre_process(client_input)
-        churn = saved_model.predict(clean_input.reshape(-1,1))
+        churn = prediction(clean_input)
     except:
         errors = True
     return {'error':errors, 'churn': churn}

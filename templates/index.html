@@ -128,7 +128,7 @@
 				<div class="col-sm-6">
 					<select id="InternetService" class="form-control" name="InternetService">
 						<option selected>Choose...</option>
-						<option value="DSL">No</option>
+						<option value="DSL">DSL</option>
 						<option value="Fiber">Fiber optic</option>
 						<option value="No">No</option>
 					</select>
@@ -269,19 +269,16 @@
             </div>
 
 			<div class="form-group row mt-5">
-				<div class="col-sm-6">
+				<div class="col-sm-12">
 					<button type="button" id="submit" class="btn btn-primary">Submit</button>
-				</div>	
-				<div class="col-sm-6">
-					<button type="button" id="predict" class="btn btn-primary">Predict</button>
 				</div>				
 			</div>
 		</form>
 		<div id="formValidation" class="alert alert-danger mt-5 d-none" role="alert">
 			<p></p>
 		</div>
-		<div id="finalPrediction" class="alert alert-success mt-3 d-none">
-			<p id="prediction"></p>
+		<div id="finalPrediction" class="text-center alert alert-success mt-3 d-none" role="alert">
+			<strong>Churn:</strong>&nbsp;<span></span></p>
 		</div>
 	</div>
 	
@@ -301,40 +298,60 @@
 			$.each($("form").serializeArray(), function(i, field){
 				if (field.value === "Choose...") {
 					formValidated = false
+				}if (["Tenure","MonthlyCharges","TotalCharges"].includes(field.name) && field.value.trim() === "") {
+					formValidated = false
 				}
 				formInputes[field.name] = field.value
 			})
-			console.log(formInputes)
-			console.log(formValidated)
+			//console.log("formInputes", formInputes)
+			//console.log("formValidated", formValidated)
 			if (formValidated) {
-				$("#formValidation").removeClass("d-none");
-				$("#finalPrediction").removeClass("d-none");
-				$("#finalPrediction").addClass("d-block");
+				if ($("#formValidation" ).hasClass( "d-block")) {
+					$("#formValidation").removeClass("d-block");
+					$("#formValidation").addClass("d-none");
+				}
+				if ($("#finalPrediction" ).hasClass( "d-none")) {
+					$("#finalPrediction").removeClass("d-none");
+					$("#finalPrediction").addClass("d-block");
+				}
 				$.ajax({
 					url: "/predict",
 					type: "POST",
 					contentType: 'application/json;charset=UTF-8',
 					data: JSON.stringify(formInputes),
 					success: function(data) {
-						console.log(data)
+						//console.log("data", data)
 						if (data['errors']) {
-							$("#formValidation").removeClass("d-none");
-							$("#formValidation").addClass("d-block");
+							if ($("#formValidation").hasClass( "d-none")) {
+								$("#formValidation").removeClass("d-none");
+								$("#formValidation").addClass("d-block");
+							}
 							$("#formValidation.p").text("Something went wrong!")
 						} else {
-							$("#finalPrediction").text(data['churn'])
+							if ($("#finalPrediction" ).hasClass( "d-none" )) {
+								$("#finalPrediction").removeClass("d-none");
+								$("#finalPrediction").addClass("d-block");
+							}
+							console.log("churn", data['churn'])
+							$("#finalPrediction span").text(data['churn'])
 						}
 						
 					},
 					error: function(e) {
-						console.log(e);
+						//console.log(e);
 					},
 				})
 			} else {
-				console.log('Dsiplay error')
-				$("#formValidation").removeClass("d-none");
-				$("#formValidation").addClass("d-block");
-				$("#formValidation.p").text("At least one of the drop-down is not selected.")
+				//console.log('Dsiplay error')
+				if ($("#finalPrediction" ).hasClass( "d-block" )) {
+					$("#finalPrediction").removeClass("d-block");
+					$("#finalPrediction").addClass("d-none");
+				}
+				if ($("#formValidation" ).hasClass( "d-none" )) {
+					$("#formValidation").removeClass("d-none");
+					$("#formValidation").addClass("d-block");
+				}
+				$("#formValidation p").text("At least one of the drop-down is not selected or numerical field is empty.")
 				
 			}
 			

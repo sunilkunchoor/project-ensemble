@@ -1,5 +1,9 @@
 import numpy as np
 import pandas as pd
+import joblib
+
+# Loading the saved model
+saved_model = joblib.load('gbc_model.pkl')
 
 def data_pre_process(dicto):
     # Dictionary to DataFrame
@@ -23,5 +27,10 @@ def data_pre_process(dicto):
     df['Tenure'] = df['Tenure'].astype('float')
     df['MonthlyCharges'] = df['MonthlyCharges'].astype('float')
     df['TotalCharges'] = df['TotalCharges'].astype('float')    
-    return df.iloc[0,:].values
+    return df.iloc[0:1,:].values
 
+def prediction(test):
+    if int(saved_model.predict(test)[0]) == 0:
+        return "No"
+    else:
+        return "Yes"
